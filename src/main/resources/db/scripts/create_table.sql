@@ -1,0 +1,7 @@
+CREATE TABLE post (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255),
+    text TEXT,
+    link TEXT UNIQUE,
+    created TIMESTAMP WITHOUT TIME ZONE
+);
