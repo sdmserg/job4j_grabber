@@ -40,8 +40,11 @@ public class AlertRabbit {
         Properties properties = new Properties();
         try (InputStream input = AlertRabbit.class.getClassLoader()
                 .getResourceAsStream("rabbit.properties")) {
+            if (input == null) {
+                throw new IllegalStateException("Property file 'rabbit.properties' not found");
+            }
             properties.load(input);
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             throw new IllegalStateException("Failed to load properties", ex);
         }
         return properties;
