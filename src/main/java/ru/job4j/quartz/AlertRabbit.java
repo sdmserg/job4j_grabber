@@ -36,7 +36,7 @@ public class AlertRabbit {
         }
     }
 
-    public static Properties loadProperties() {
+    private static Properties loadProperties() {
         Properties properties = new Properties();
         try (InputStream input = AlertRabbit.class.getClassLoader()
                 .getResourceAsStream("rabbit.properties")) {
