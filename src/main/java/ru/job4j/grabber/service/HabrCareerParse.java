@@ -11,7 +11,6 @@ import org.jsoup.Jsoup;
 
 import ru.job4j.grabber.model.Post;
 import ru.job4j.grabber.utils.DateTimeParser;
-import ru.job4j.grabber.utils.HabrCareerDateTimeParser;
 
 public class HabrCareerParse implements Parse {
     private static final Logger LOG = Logger.getLogger(HabrCareerParse.class);
@@ -19,11 +18,15 @@ public class HabrCareerParse implements Parse {
     private static final String PREFIX = "vacancies?page=";
     private static final String SUFFIX = "q=Java+developer&type=all";
     private static final int PAGE_NUMBER = 5;
+    private final DateTimeParser dateTimeParser;
+
+    public HabrCareerParse(DateTimeParser dateTimeParser) {
+        this.dateTimeParser = dateTimeParser;
+    }
 
     @Override
     public List<Post> fetch() {
         var result = new ArrayList<Post>();
-        DateTimeParser dateTimeParser = new HabrCareerDateTimeParser();
         try {
             for (int pageNumber = 1; pageNumber <= PAGE_NUMBER; pageNumber++)  {
                 String fullLink = "%s%s%d%s".formatted(SOURCE_LINK, PREFIX, pageNumber, SUFFIX);
