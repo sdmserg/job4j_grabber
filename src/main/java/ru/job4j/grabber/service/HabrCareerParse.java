@@ -14,9 +14,9 @@ import ru.job4j.grabber.utils.DateTimeParser;
 
 public class HabrCareerParse implements Parse {
     private static final Logger LOG = Logger.getLogger(HabrCareerParse.class);
-    private static final String SOURCE_LINK = "career.habr.com";
-    private static final String PREFIX = "vacancies?page=";
-    private static final String SUFFIX = "q=Java+developer&type=all";
+    private static final String SOURCE_LINK = "https://career.habr.com";
+    private static final String PREFIX = "/vacancies?page=";
+    private static final String SUFFIX = "&q=Java%20developer&type=all";
     private static final int PAGE_NUMBER = 5;
     private final DateTimeParser dateTimeParser;
 

@@ -16,6 +16,7 @@ public class Config {
             properties.load(input);
         } catch (IOException io) {
             LOG.error(String.format("When the load file: %s", file), io);
+            throw new IllegalStateException("Failed to load properties", io);
         }
     }
 

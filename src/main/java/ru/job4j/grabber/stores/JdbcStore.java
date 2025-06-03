@@ -1,10 +1,6 @@
 package ru.job4j.grabber.stores;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.time.LocalDateTime;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -12,24 +8,25 @@ import java.util.Optional;
 import org.apache.log4j.Logger;
 
 import ru.job4j.grabber.model.Post;
+import ru.job4j.grabber.service.Config;
 
 public class JdbcStore implements Store {
     private static final Logger LOG = Logger.getLogger(JdbcStore.class);
     private final Connection connection;
 
-    public JdbcStore(Connection connection) {
-        this.connection = connection;
+    public JdbcStore(Config config) {
+        this.connection = initConnection(config);
     }
 
     @Override
     public void save(Post post) {
         try (PreparedStatement statement = connection.prepareStatement(
-                "INSERT INTO posts(name, text, link, created) VALUES (?, ?, ?, ?)"
+                "INSERT INTO posts(name, text, link, created) VALUES (?, ?, ?, ?) ON CONFLICT (link) DO NOTHING"
         )) {
             statement.setString(1, post.getTitle());
             statement.setString(2, post.getDescription());
             statement.setString(3, post.getLink());
-            statement.setObject(4, LocalDateTime.now());
+            statement.setObject(4, post.getTime());
             statement.execute();
         } catch (SQLException ex) {
             LOG.error(String.format("When save post with title: %s  and link: %s",
@@ -50,9 +47,9 @@ public class JdbcStore implements Store {
                     posts.add(new Post(
                             resultSet.getLong("id"),
                             resultSet.getString("name"),
-                            resultSet.getString("text"),
                             resultSet.getString("link"),
-                            resultSet.getTimestamp("created").getTime()
+                            resultSet.getString("text"),
+                            resultSet.getLong("created")
                     ));
                 }
             }
@@ -86,5 +83,19 @@ public class JdbcStore implements Store {
                     id), ex);
         }
         return Optional.ofNullable(post);
+    }
+
+    private static Connection initConnection(Config config) {
+        try {
+            Class.forName(config.get("db.driver-class-name"));
+            return DriverManager.getConnection(
+                    config.get("db.url"),
+                    config.get("db.username"),
+                    config.get("db.password")
+            );
+        } catch (Exception ex) {
+            LOG.error("Failed to connection DB", ex);
+            throw new IllegalStateException("Failed to connect DB", ex);
+        }
     }
 }

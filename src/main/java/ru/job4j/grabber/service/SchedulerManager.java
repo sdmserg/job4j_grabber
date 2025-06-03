@@ -21,10 +21,11 @@ public class SchedulerManager {
         }
     }
 
-    public void load(int period, Class<SuperJobGrab> task, Store store) {
+    public void load(int period, Class<? extends Job> task, Store store, Parse parse) {
         try {
             var data = new JobDataMap();
             data.put("store", store);
+            data.put("parse", parse);
             var job = newJob(task)
                     .setJobData(data)
                     .build();

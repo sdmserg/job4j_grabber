@@ -1,44 +1,34 @@
 package ru.job4j;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
+import org.apache.log4j.Logger;
 
-import ru.job4j.grabber.model.Post;
-import ru.job4j.grabber.service.Config;
-import ru.job4j.grabber.service.SchedulerManager;
-import ru.job4j.grabber.service.SuperJobGrab;
+import ru.job4j.grabber.service.*;
 import ru.job4j.grabber.stores.JdbcStore;
+import ru.job4j.grabber.utils.HabrCareerDateTimeParser;
 
 public class Main {
-    public static void main(String[] args) {
-        var config = new Config();
-        config.load("application.properties");
-        Connection connection = initConnection(config);
-        var store = new JdbcStore(connection);
-        var post = new Post();
-        post.setTitle("Java Developer");
-        post.setDescription("Приглашаем разработчика Java");
-        post.setLink("https://career.habr.com/vacancies/1000155112");
-        store.save(post);
-        var scheduler = new SchedulerManager();
-        scheduler.init();
-        scheduler.load(
-                Integer.parseInt(config.get("rabbit.interval")),
-                SuperJobGrab.class,
-                store
-        );
-    }
+    private static final Logger LOG = Logger.getLogger(Main.class);
 
-    private static Connection initConnection(Config config) {
+    public static void main(String[] args) {
         try {
-            Class.forName(config.get("db.driver-class-name"));
-            return DriverManager.getConnection(
-                    config.get("db.url"),
-                    config.get("db.username"),
-                    config.get("db.password")
+            var config = new Config();
+            config.load("application.properties");
+            var store = new JdbcStore(config);
+            var parse = new HabrCareerParse(new HabrCareerDateTimeParser());
+            var scheduler = new SchedulerManager();
+            scheduler.init();
+            scheduler.load(
+                    Integer.parseInt(config.get("rabbit.interval")),
+                    HabrCareerGrab.class,
+                    store,
+                    parse
             );
+            new Web(store).start(Integer.parseInt(config.get("server.port")));
+        } catch (NumberFormatException ex) {
+            throw new IllegalStateException(
+                    "Property 'rabbit.interval' and 'server.port' must be integer", ex);
         } catch (Exception ex) {
-            throw new IllegalStateException("Failed to connect DB", ex);
+            LOG.error("Unexpected error occurred", ex);
         }
     }
 }
